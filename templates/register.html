@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card p-4 shadow-lg">
+      <h3 class="text-center mb-3 fw-bold">Register</h3>
+
+      <form method="POST" id="registerForm">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Role</label>
+          <select name="role" id="roleSelect" class="form-select" required>
+            <option value="">Select Role</option>
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Full Name</label>
+          <input name="name" class="form-control" placeholder="Full Name" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <input name="email" type="email" class="form-control" placeholder="Email" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password</label>
+          <input name="password" type="password" class="form-control" placeholder="Password" required>
+        </div>
+
+        <div id="studentFields" style="display:none;">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Batch</label>
+            <input name="batch" class="form-control" placeholder="e.g. CSE23">
+          </div>
+        </div>
+
+        <div id="facultyFields" style="display:none;">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Phone Number</label>
+            <input name="phone_no" class="form-control" placeholder="Optional">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Department</label>
+          <select name="department_id" class="form-select" required>
+            <option value="">Select Department</option>
+            <option value="1">Computer Science</option>
+            <option value="2">Information Science</option>
+            <option value="3">Electronics</option>
+          </select>
+        </div>
+
+        <button class="btn btn-success w-100">Register</button>
+      </form>
+
+      <div class="text-center mt-3">
+        <small>Already have an account? <a href="{{ url_for('index') }}">Login</a></small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('roleSelect').addEventListener('change', function() {
+  const role = this.value;
+  document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
+  document.getElementById('facultyFields').style.display = role === 'faculty' ? 'block' : 'none';
+});
+</script>
+{% endblock %}

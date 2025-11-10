@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Faculty Dashboard{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="fw-bold mb-4 text-center">Faculty Dashboard</h2>
+
+  <!-- 🔹 Create New Project -->
+  <div class="card p-4 mb-5 shadow-sm">
+    <h5 class="mb-3 fw-semibold">Create New Project</h5>
+    <form method="POST" action="{{ url_for('create_project') }}">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-3">
+          <input type="text" name="title" class="form-control" placeholder="Project Title" required>
+        </div>
+        <div class="col-md-4">
+          <input type="text" name="description" class="form-control" placeholder="Description">
+        </div>
+        <div class="col-md-2">
+          <input type="date" name="deadline" class="form-control" required>
+        </div>
+        <div class="col-md-2">
+          <input type="number" name="max_marks" class="form-control" placeholder="Max Marks" value="100">
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-success w-100">Add</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- 🔹 Project List -->
+  <div class="card p-4 mb-5 shadow-sm">
+    <h5 class="mb-3 fw-semibold">Your Projects</h5>
+    <table class="table table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Deadline</th>
+            <th>Max Marks</th>
+            <th>Submissions</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in projects %}
+        <tr>
+            <td>{{ p.project_id }}</td>
+            <td>{{ p.title }}</td>
+            <td>{{ p.deadline }}</td>
+            <td>{{ p.max_marks }}</td>
+            <td>{{ p.submissions }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('delete_project', project_id=p.project_id) }}" style="display:inline;">
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this project?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+  </div>
+
+  <!-- 🔹 Recent Submissions -->
+  <div class="card p-4 shadow-sm mb-5">
+    <h5 class="mb-3 fw-semibold">Recent Submissions</h5>
+    <table class="table table-bordered table-striped align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Student</th>
+          <th>Project</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>File</th>
+          <th>Grade</th>
+          <th>Comments</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in submissions %}
+        <tr>
+          <td>{{ s.student_name }}</td>
+          <td>{{ s.title }}</td>
+          <td>{{ s.status }}</td>
+          <td>{{ s.submission_date }}</td>
+          <td>
+            {% if s.file_link %}
+              <a href="{{ url_for('uploaded_file', filename=s.file_link) }}" target="_blank" class="btn btn-sm btn-outline-secondary">View</a>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>{{ s.grade if s.grade else '-' }}</td>
+          <td>{{ s.faculty_comments if s.faculty_comments else '—' }}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#gradeModal{{ s.submission_id }}">Grade</button>
+          </td>
+        </tr>
+
+        <!-- Grade Modal -->
+        <div class="modal fade" id="gradeModal{{ s.submission_id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="POST" action="{{ url_for('grade_submission', submission_id=s.submission_id) }}">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title">Grade Submission — {{ s.student_name }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Grade (out of {{ s.max_marks }})</label>
+                    <input type="number" name="grade" class="form-control" min="0" max="{{ s.max_marks }}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Comments</label>
+                    <textarea name="faculty_comments" class="form-control" rows="3" placeholder="Write feedback..."></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-success">Submit Grade</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
