@@ -207,6 +207,9 @@ def student_dashboard():
 # -------------------------------------------------
 # 📤 Submit Project
 # -------------------------------------------------
+# -------------------------------------------------
+# 📤 Submit Project (Now calls the Stored Procedure)
+# -------------------------------------------------
 @app.route("/submit_project", methods=["POST"])
 def submit_project():
     if session.get("role") != "student":
@@ -222,40 +225,37 @@ def submit_project():
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(dictionary=True) # Use dictionary=True to read the result
 
-        # 1. Check if submission already exists (for re-submission)
-        cur.execute("""
-            SELECT submission_id FROM submission 
-            WHERE student_id = %s AND project_id = %s
-        """, (student_id, project_id))
-        existing_submission = cur.fetchone()
+        # CALL THE STORED PROCEDURE
+        # It handles the logic for INSERT vs. UPDATE (Re-submission)
+        call_args = (student_id, project_id, datetime.now().date(), filename)
+        cur.callproc('SP_SubmitProject', call_args)
 
-        if existing_submission:
-            # Update existing submission (Re-submission)
-            cur.execute("""
-                UPDATE submission
-                SET submission_date = %s, file_link = %s, status = 'Submitted', grade = NULL, faculty_comments = NULL
-                WHERE student_id = %s AND project_id = %s
-            """, (datetime.now().date(), filename, student_id, project_id))
-            flash_message = "🔄 Project re-submitted successfully! Previous grade cleared."
-        else:
-            # Insert new submission
-            cur.execute("""
-                INSERT INTO submission (student_id, project_id, submission_date, file_link, status)
-                VALUES (%s, %s, %s, %s, 'Submitted')
-            """, (student_id, project_id, datetime.now().date(), filename))
-            flash_message = "✅ Project submitted successfully!"
-            
+        # The SP returns a status_result: 'INSERTED' or 'RE_SUBMITTED'
+        # Get the result set returned by the procedure
+        for result in cur.stored_results():
+            status_row = result.fetchone()
+            if status_row:
+                status = status_row['status_result']
+            else:
+                status = 'UNKNOWN'
+
         conn.commit()
         conn.close()
+
+        if status == 'RE_SUBMITTED':
+            flash_message = "🔄 Project re-submitted successfully! Previous grade cleared."
+        elif status == 'INSERTED':
+            flash_message = "✅ Project submitted successfully!"
+        else:
+            flash_message = "✅ Submission processed successfully!"
 
         flash(flash_message, "success")
         return redirect(url_for("student_dashboard"))
     else:
         flash("No file uploaded!", "danger")
         return redirect(url_for("student_dashboard"))
-
 
 # -------------------------------------------------
 # 🧾 Faculty Grading Route

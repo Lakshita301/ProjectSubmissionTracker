@@ -1,9 +1,8 @@
--- =================================================================
--- Database Setup: student_project_submission_tracker
--- =================================================================
-
+-- 1. DATABASE SETUP (DDL)
 CREATE DATABASE student_project_submission_tracker;
 USE student_project_submission_tracker;
+
+-- CREATE TABLE Commands (DDL: Create)
 
 -- DEPARTMENT Table
 CREATE TABLE department (
@@ -57,7 +56,7 @@ CREATE TABLE Project (
     FOREIGN KEY (course_id) REFERENCES course(course_id)
 );
 
--- SUBMISSION Table
+-- SUBMISSION Table (Includes the crucial 'status' column)
 CREATE TABLE submission (
     submission_id INT PRIMARY KEY AUTO_INCREMENT,
     student_id INT,
@@ -82,21 +81,63 @@ CREATE TABLE review (
 );
 
 
--- Initial Data for Department Table
+-- 3. INITIAL DATA (DML: Insert)
 INSERT INTO department (department_id, department_name) VALUES
 (1, 'Computer Science'),
 (2, 'Information Science'),
 (3, 'Electronics');
 
 
--- TRIGGER Implementation
+-- 4. TRIGGER IMPLEMENTATION (Triggers)
 DELIMITER //
 
 CREATE TRIGGER before_project_delete
 BEFORE DELETE ON Project
 FOR EACH ROW
 BEGIN
+    -- Deletes associated submissions when a project is deleted.
     DELETE FROM submission WHERE project_id = OLD.project_id;
 END; //
+
+DELIMITER ;
+
+
+-- 5. STORED PROCEDURE IMPLEMENTATION (Procedures/Functions)
+DELIMITER //
+
+CREATE PROCEDURE SP_SubmitProject (
+    IN p_student_id INT,
+    IN p_project_id INT,
+    IN p_submission_date DATE,
+    IN p_file_link VARCHAR(255)
+)
+BEGIN
+    DECLARE submission_exists INT DEFAULT 0;
+
+    -- Check if a submission already exists for this student and project
+    SELECT COUNT(submission_id) INTO submission_exists
+    FROM submission
+    WHERE student_id = p_student_id AND project_id = p_project_id;
+
+    IF submission_exists > 0 THEN
+        -- If it exists, UPDATE (re-submission logic)
+        UPDATE submission
+        SET 
+            submission_date = p_submission_date,
+            file_link = p_file_link,
+            status = 'Submitted', 
+            grade = NULL, 
+            faculty_comments = NULL
+        WHERE student_id = p_student_id AND project_id = p_project_id;
+        
+        SELECT 'RE_SUBMITTED' AS status_result;
+    ELSE
+        -- If it does not exist, INSERT (new submission logic)
+        INSERT INTO submission (student_id, project_id, submission_date, file_link, status)
+        VALUES (p_student_id, p_project_id, p_submission_date, p_file_link, 'Submitted');
+        
+        SELECT 'INSERTED' AS status_result;
+    END IF;
+END //
 
 DELIMITER ;
