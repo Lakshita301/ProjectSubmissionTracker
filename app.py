@@ -258,26 +258,6 @@ def submit_project():
         return redirect(url_for("student_dashboard"))
 
 
-#new added
-@app.route("/delete_submission/<int:submission_id>", methods=["POST"])
-def delete_submission(submission_id):
-    if session.get("role") != "student":
-        flash("Unauthorized", "danger")
-        return redirect(url_for("index"))
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        DELETE FROM submission
-        WHERE submission_id = %s AND student_id = %s
-    """, (submission_id, session["user_id"]))
-    conn.commit()
-    conn.close()
-
-    flash("🗑️ Submission deleted successfully", "info")
-    return redirect(url_for("student_dashboard"))
-
-
 # -------------------------------------------------
 # 🧾 Faculty Grading Route
 # -------------------------------------------------
