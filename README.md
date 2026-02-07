@@ -14,19 +14,25 @@ This project helps instructors and administrators:
 
 ##  Features
 
-- 💻 Web UI to add and view student submissions
-- 🗂️ Database structure for storing student & project data
-- ⚙️ Configurable DB settings via `db_config.py`
-- 🛠️ Ready to build, run, and extend
+- Web UI to add and view student submissions
+- Database structure for storing student & project data
+- Configurable DB settings via `db_config.py`
+- Ready to build, run, and extend
 
 ##  Repository Structure
 
 ProjectSubmissionTracker/
 ├── static/ # Styles, images, JavaScript
+
 ├── templates/ # HTML templates for Flask
+
 ├── app.py # Main Flask application
+
 ├── db_config.py # Database connection config
+
 ├── student_project_submission_tracker.sql # SQL schema
+
 ├── .gitignore
+
 └── README.md
 
