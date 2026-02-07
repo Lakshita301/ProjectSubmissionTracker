@@ -22,6 +22,7 @@ This project helps instructors and administrators:
 ##  Repository Structure
 
 ProjectSubmissionTracker/
+
 ├── static/ # Styles, images, JavaScript
 
 ├── templates/ # HTML templates for Flask
